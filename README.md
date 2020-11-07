@@ -232,16 +232,7 @@ sudo apt-get update
 sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 ```
-
-**1.更新源并下载工具**
-
-```
-apt-get update && apt-get install -y apt-transport-https curl
-```
-
-![img](https://img-blog.csdnimg.cn/20190802155849879.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L004Ml9BMQ==,size_16,color_FFFFFF,t_70)
-
-**2.添加公钥**
+**1.添加公钥**
 
 ```
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
@@ -257,6 +248,16 @@ curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 
 网盘地址：链接：https://pan.baidu.com/s/1aHtwOveSt0-QLPw9SYS8xw 
          提取码：uqjf 
+         
+         
+**2.更新源并下载工具**
+
+```
+apt-get update && apt-get install -y apt-transport-https curl
+```
+
+![img](https://img-blog.csdnimg.cn/20190802155849879.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L004Ml9BMQ==,size_16,color_FFFFFF,t_70)
+
 
 
 **3.添加kubernetes源**
@@ -410,16 +411,25 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```shell
 kubeadm join 192.168.1.128:6443 --token iut7km.88nu0r6fwsevb0sm --discovery-token-ca-cert-hash sha256:939a4a1fb089e545fef0c788ee510e32ce26d3376a4e2db8bc5e45a017b0b455
 ```
+### 配置网络
+```shell
+wget -c https://docs.projectcalico.org/v3.8/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml
+```
+```shell
+//安装的是v3.8.9
+sed -i '/CALICO_IPV4POOL_IPIP/{n;s/Always/off/g}' calico.yaml
+sed -i '/CALICO_IPV4POOL_CIDR/{n;s/192.168.0.0/10.244.0.0/g}' calico.yaml
+kubectl apply -f calico.yaml
+```
 
-向集群中添加新的node：（在master结点上运行）
+### 向集群中添加新的node：（在master结点上运行）
+自动生成命令：
 
 ```shell
 root@lxy-H61H2-CM:~# kubeadm token create --print-join-command
 W1011 21:38:29.198995    6132 configset.go:202] WARNING: kubeadm cannot validate component configs for API groups [kubelet.config.k8s.io kubeproxy.config.k8s.io]
 kubeadm join 192.168.1.128:6443 --token jngwo6.no3js51qjz1ru5vl     --discovery-token-ca-cert-hash sha256:47a092d53484973ed7880891c4d6332f00d7d581201de1aa0bdde0315bff6591
 ```
-
-
 
 
 
@@ -482,13 +492,16 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 
 ## 接上：
-
+### 网络配置
 ```shell
-root@lxy-H61H2-CM:~# sed -i '/CALICO_IPV4POOL_IPIP/{n;s/Always/off/g}' calico.yaml
-root@lxy-H61H2-CM:~# sed -i '/CALICO_IPV4POOL_CIDR/{n;s/192.168.0.0/10.244.0.0/g}' calico.yaml
-root@lxy-H61H2-CM:~# kubectl apply -f calico.yaml
+wget -c https://docs.projectcalico.org/v3.8/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml
 ```
-
+```shell
+//安装的是v3.8.9
+sed -i '/CALICO_IPV4POOL_IPIP/{n;s/Always/off/g}' calico.yaml
+sed -i '/CALICO_IPV4POOL_CIDR/{n;s/192.168.0.0/10.244.0.0/g}' calico.yaml
+kubectl apply -f calico.yaml
+```
 
 ```shell
 kubectl get pods -n kube-system
