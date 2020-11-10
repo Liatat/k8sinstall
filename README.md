@@ -836,7 +836,27 @@ chown -R ESroot /home/cnu101/elasticsearch-6.0.1
 切换用户到esroot
 su esroot
 ```
+进入/bin运行`./elasticsearch`
 
+ 如果报 问题：max virtual memory areas vm.max_map_count [65530] is too  low,increase to at least [262144]原因：elasticsearch用户拥有的内存权限太小，至少需要262144  解决：切换到root用户，在/etc/sysctl.conf文件最后添加一行 vm.max_map_count=655360  添加完毕之后，执行命令： sysctl -p
+
+```shell
+#
+# For more information, see sysctl.conf(5) and sysctl.d(5).
+vm.max_map_count=655360
+```
+
+再次切换到esroot普通用户，重新启动es服务。
+
+![image-20201110131046487](/home/cnu101/.config/Typora/typora-user-images/image-20201110131046487.png)
+
+网页访问：localhost：9200可以查看
+
+![image-20201110131154350](/home/cnu101/.config/Typora/typora-user-images/image-20201110131154350.png)
+
+
+
+参考：
 https://blog.csdn.net/ltgsoldier1/article/details/97393154
 
 https://www.cnblogs.com/yidiandhappy/p/7714489.html
