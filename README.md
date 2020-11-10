@@ -656,3 +656,188 @@ zipkin                      ClusterIP      10.99.229.224    <none>        9411/T
 查看状态`kubectl get pod -n sock-shop`
 
 ![image-20201009211938705](/home/lxy/文档/k8s安装记录.assets/image-20201009211938705.png)
+
+## Istio可视化
+
+默认采用Grafana
+
+1、验证 `prometheus` 服务正在集群中运行。
+
+在 Kubernetes 环境中，执行以下命令：
+
+```bash
+$ kubectl -n istio-system get svc prometheus
+NAME         CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+prometheus   10.59.241.54   <none>        9090/TCP   2m
+```
+
+2、验证 Grafana 服务正在集群中运行。
+
+在 Kubernetes 环境中，执行以下命令：
+
+```bash
+$ kubectl -n istio-system get svc grafana
+NAME      CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+grafana   10.59.247.103   <none>        3000/TCP   2m
+```
+
+3、通过 Grafana UI 打开 Istio Dashboard。
+
+在 Kubernetes 环境中，执行以下命令：
+
+```bash
+$ kubectl -n istio-system port-forward $(kubectl -n istio-system get pod -l app=grafana -o jsonpath='{.items[0].metadata.name}') 3000:3000 &
+```
+
+在浏览器中访问 http://localhost:3000/dashboard/db/istio-mesh-dashboard。
+
+# 四、Elasticresearch
+
+## 准备环节
+
+检查是否安装了jdk
+
+```shell
+java -version
+```
+
+没有版本信息的话，首先安装一下jdk
+
+去oracle官网下载安装包jdk8
+
+解压到指定目录
+
+```shell
+mkdir /usr/lib/jvm
+tar -zxvf jdk-8u271-linux-x64.tar.gz -C /usr/lib/jvm
+```
+
+修改环境变量`vim ~/.bashrc`
+
+在文件末尾添加
+
+```shell
+#set oracle jdk environment
+export JAVA_HOME=/usr/lib/jvm/jdk1.8.0_271
+export JRE_HOME=${JAVA_HOME}/jre
+export CLASSPATH=.:${JAVA_HOME}/lib:${JRE_HOME}/lib
+export PATH=${JAVA_HOME}/bin:$PATH
+```
+
+使修改立即生效`source ~/.bashrc`
+
+## 安装一个node
+
+单机部署elasticsearch
+
+1、下载安装包
+
+```shell
+curl -L -O https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.0.1.tar.gz
+```
+
+2、解压到对应的文件夹下
+
+我的目录-->  /home/cnu101
+
+同级目录创建文件夹path/to/data
+
+​									path/to/logs
+
+```
+/home/cnu@101目录结构介绍：
+-elasticsearch-6.0.1
+	+bin：可执行文件，运行es的命令
+	+config：配置文件目录
+ 	+config/elasticsearch.yml：ES启动基础配置
+ 	+config/jvm.options：ES启动时JVM配置
+ 	+config/log4j2.properties：ES日志输出配置文件
+	+lib：依赖的jar
+	+logs：日志文件夹
+	+modules：es模块
+	+plugins：可以自己开发的插件
+-path:
+	-to:
+		+data
+		+logs
+```
+
+3、配置ES基础设置打开config目录下的elasticsearch.yaml
+
+​	配置集群名
+
+```yaml
+# ---------------------------------- Cluster -----------------------------------
+#
+# Use a descriptive name for your cluster:
+#
+cluster.name: es_zipkin
+#
+```
+
+​	配置当前es节点名称（默认是被注释的，并且默认有一个节点名）
+
+```yaml
+# ------------------------------------ Node ------------------------------------
+#
+# Use a descriptive name for the node:
+#
+node.name: node-1
+#
+```
+
+​	配置存储数据的目录路径（用逗号分隔多个位置）和日志文件路径
+
+```yaml
+# ----------------------------------- Paths ------------------------------------
+#
+# Path to directory where to store the data (separate multiple locations by comma):
+#
+path.data: /home/cnu101/path/to/data
+#
+# Path to log files:
+#
+path.logs: /home/cnu101/path/to/logs
+#
+```
+
+​	绑定地址为特定IP地址（设置其它节点和该节点交互的ip地址，如果不设置它会自动判断）默认为0.0.0.0，绑定这台机器的任何一个ip
+
+```yaml
+# ---------------------------------- Network -----------------------------------
+#
+# Set the bind address to a specific IP (IPv4 or IPv6):
+#
+network.host: 192.168.1.127
+#
+# Set a custom port for HTTP:
+#
+http.port: 9200
+#
+```
+
+4、启动ES
+
+> 注意：1.5版本之后不支持root启动 ,需要新建用户
+
+1) 创建用户并赋予es安装目录权限
+
+```shell
+创建一个esroot用户并设置初始密码
+useradd -c 'ES-user' -d /home/cnu101 ESroot
+#  -c 注解资料位于/etc/passwd
+# -d 设定用户的目录
+#  用户名
+passwd esroot
+
+将es安装目录属主权限改为esroot用户(注意包含path文件夹)
+chown -R ESroot /home/cnu101/elasticsearch-6.0.1
+
+切换用户到esroot
+su esroot
+```
+
+https://blog.csdn.net/ltgsoldier1/article/details/97393154
+
+https://www.cnblogs.com/yidiandhappy/p/7714489.html
+
