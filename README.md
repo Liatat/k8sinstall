@@ -105,6 +105,11 @@ root@s01-H61H2-CM:~# ufw status
 
 表示防火墙是关闭状态
 
+## 开启ssh
+```shell
+apt-get install openssh-server
+```
+
 ## 修改k8s.conf文件
 
 ```shell
@@ -594,9 +599,11 @@ kubectl edit deployment kubernetes-dashboard -n kubernetes-dashboard //修改新
 
 6、`kubectl get pod -n sock-shop `查看pod状态是否都running，`kubectl get svc -n sock-shop`查看services，以及端口号，如下图：30003端口作为sock-shop的服务入口。浏览器 {NodeIp}:30003-->192.168.1.111:30003进行访问。
 
-![image-20201006152146156](/home/lxy/.config/Typora/typora-user-images/image-20201006152146156.png)
+
 
 # 三、Istio安装
+
+## 1.5.10版本安装
 
 1、官网上（github）下载对应版本安装包，采用istioctl方式安装。安装1.5.10版本。
 
@@ -621,7 +628,7 @@ PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/u
 
 然后`source /etc/environment`使它生效。
 
-4、快速部署istio，cd到install/kubernetes目录里面执行`root@lxy-H61H2-CM:/home/lxy/istio/istio-1.5.10/install/kubernetes# kubectl apply -f istio-demo.yaml`
+4、快速部署istio，cd 到install/kubernetes目录里面执行`root@lxy-H61H2-CM:/home/lxy/istio/istio-1.5.10/install/kubernetes# kubectl apply -f istio-demo.yaml`
 
 5、` kubectl get svc -n istio-system`查看发现istio-ingressgateway是pending，修改文件
 
@@ -690,6 +697,22 @@ $ kubectl -n istio-system port-forward $(kubectl -n istio-system get pod -l app=
 ```
 
 在浏览器中访问 http://localhost:3000/dashboard/db/istio-mesh-dashboard。
+
+## 1.6.14版本安装
+参考官网
+### 安装istio及其自带zipkin
+```shell
+#安装istio，并进行自定义配置，此时采用的自带的zipkin
+istioctl manifest apply --set profile=demo --set values.gateways.istio-ingressgateway.type=NodePort --set values.grafana.enabled=true --set values.grafana.service.type=NodePort --set values.tracing.enabled=true --set values.tracing.provider=zipkin --set values.pilot.traceSampling=100.0
+```
+安装完成后可以参考排坑记录上的方式修改zipkin服务类型为NodePort。
+
+### 安装istio绑定已安装zipkin（未检验）
+
+```shell
+#安装istio， 并采用自己定义的zipkin（将zipkin已经部署到了zipkin-ns命名空间）
+istioctl manifest apply --set profile=demo --set values.gateways.istio-ingressgateway.type=NodePort --set values.grafana.enabled=true --set values.grafana.service.type=NodePort --set values.global.tracer.zipkin.address=zipkin.zipkin-ns:9411 --set values.pilot.traceSampling=100.0
+```
 
 # 四、Elasticresearch
 
