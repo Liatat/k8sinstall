@@ -5,4 +5,7 @@
   - deployment.yaml
   - class.yaml 注意：class.yaml中的StorageClass的名字
   
+ ## ES 安装
+参考：[Kubernetes Helm3 部署 ElasticSearch & Kibana 7 集群] (https://cloud.tencent.com/developer/article/1754675)
+
 
